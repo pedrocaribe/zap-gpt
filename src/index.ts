@@ -56,7 +56,7 @@ async function start(client: wppconnect.Whatsapp): Promise<void> {
         message.chatId !== 'status@broadcast'
       ) {
         const chatId = message.chatId;
-        console.log('Mensagem recebida:', message.body);
+        console.log('Mensagem recebida:', message.timestamp, ' : ', message.body);
         if (AI_SELECTED === 'GPT') {
           await initializeNewAIChatSession(chatId);
         }
