@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import { initializeNewAIChatSession, mainOpenAI } from './service/openai';
 import { splitMessages, sendMessagesWithDelay } from './util';
 import { mainGoogle } from './service/google';
+import { DatePipe } from '@angular/common';
+
+const datePipe = new DatePipe('en-US');
 
 dotenv.config();
 type AIOption = 'GPT' | 'GEMINI';
@@ -55,8 +58,10 @@ async function start(client: wppconnect.Whatsapp): Promise<void> {
         !message.isGroupMsg &&
         message.chatId !== 'status@broadcast'
       ) {
+        
+        const myFormattedDate = datePipe.transform(message.timestamp, 'EEEE, MMMM d');
         const chatId = message.chatId;
-        console.log('Mensagem recebida:', message.timestamp, ' : ', message.body);
+        console.log('Mensagem recebida:', myFormattedDate, ' : ', message.body);
         if (AI_SELECTED === 'GPT') {
           await initializeNewAIChatSession(chatId);
         }
