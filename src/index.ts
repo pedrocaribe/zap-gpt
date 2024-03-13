@@ -1,12 +1,13 @@
-import wppconnect from '@wppconnect-team/wppconnect';
+import wppconnect, { Whatsapp } from '@wppconnect-team/wppconnect';
+
 
 import dotenv from 'dotenv';
 import { initializeNewAIChatSession, mainOpenAI } from './service/openai';
 import { splitMessages, sendMessagesWithDelay } from './util';
 import { mainGoogle } from './service/google';
-import { DatePipe } from '@angular/common';
-
-const datePipe = new DatePipe('en-US');
+import { SpeechClient } from '@google-cloud/speech';
+import { channel } from 'diagnostics_channel';
+import { fromUnixTime } from 'date-fns/fromUnixTime';
 
 dotenv.config();
 type AIOption = 'GPT' | 'GEMINI';
@@ -53,15 +54,17 @@ wppconnect
 async function start(client: wppconnect.Whatsapp): Promise<void> {
   client.onMessage((message) => {
     (async () => {
+
+      const msgDate = fromUnixTime(message.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo'})
+
       if (
         message.type === 'chat' &&
         !message.isGroupMsg &&
         message.chatId !== 'status@broadcast'
       ) {
-        
-        const myFormattedDate = datePipe.transform(message.timestamp, 'EEEE, MMMM d');
         const chatId = message.chatId;
-        console.log('Mensagem recebida:', myFormattedDate, ' : ', message.body);
+        console.log('Mensagem recebida:', msgDate, ':', message.body);
+        // console.log('Mensagem recebida:', message.timestamp.toLocaleString(), ':', message.body);
         if (AI_SELECTED === 'GPT') {
           await initializeNewAIChatSession(chatId);
         }
@@ -119,6 +122,15 @@ async function start(client: wppconnect.Whatsapp): Promise<void> {
             })();
           }, 20000)
         );
+      }
+      else if (
+        message.type === 'ptt' &&
+        !message.isGroupMsg &&
+        message.chatId !== 'status@broadcast'
+      ){
+
+          console.log('Mensagem de audio recebida:', msgDate)
+
       }
     })();
   });
